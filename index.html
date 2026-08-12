@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi horario · 2026-2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F5F2;
+    --paper-dim:#EDECE7;
+    --ink:#1B1C1E;
+    --ink-soft:#6B6D72;
+    --line:#DEDCD5;
+    --blue:#5E7CE2;
+    --green:#4C9A6E;
+    --amber:#D98A3D;
+    --rose:#D9566F;
+    --violet:#8A63C9;
+    --teal:#3E9C9C;
+    --brown:#A8763E;
+    --gray:#8A8F98;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', -apple-system, sans-serif;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+    min-height:100vh;
+    overscroll-behavior-y:none;
+  }
+
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:0 20px 48px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding:28px 0 18px;
+    position:relative;
+  }
+
+  .switcher{
+    position:relative;
+    display:inline-block;
+  }
+  .switcher-btn{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    padding:0;
+    margin:0 0 6px;
+    cursor:pointer;
+  }
+  .switcher-btn svg{
+    width:10px; height:10px;
+    transition:transform .15s ease;
+  }
+  .switcher-btn.open svg{transform:rotate(180deg);}
+
+  .switcher-menu{
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    background:#FFFFFF;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:6px;
+    min-width:190px;
+    box-shadow:0 8px 24px rgba(20,20,20,.08);
+    z-index:20;
+    display:none;
+  }
+  .switcher-menu.open{display:block;}
+  .switcher-menu button{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    padding:9px 10px;
+    border-radius:8px;
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .switcher-menu button:hover{background:var(--paper-dim);}
+  .switcher-menu button .swatch{
+    width:8px; height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .switcher-menu button.selected{
+    background:var(--paper-dim);
+    font-weight:600;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:34px;
+    line-height:1.05;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--ink-soft);
+  }
+
+  /* ---------- Today strip ---------- */
+  .today{
+    margin-top:20px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px 18px;
+    background:#FFFFFF;
+  }
+  .today-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .today-date{color:var(--ink);}
+  .today-body{margin-top:10px;}
+  .today-empty{
+    font-size:14px;
+    color:var(--ink-soft);
+  }
+  .next-class{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .next-class .bar{
+    width:4px;
+    align-self:stretch;
+    border-radius:2px;
+    flex-shrink:0;
+  }
+  .next-class .info{flex:1;}
+  .next-class .name{
+    font-family:'Fraunces', serif;
+    font-size:18px;
+    font-weight:500;
+  }
+  .next-class .meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .next-class .tag{
+    font-size:10.5px;
+    font-family:'IBM Plex Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    margin-left:auto;
+    align-self:flex-start;
+  }
+
+  /* ---------- Day tabs ---------- */
+  nav.days{
+    display:flex;
+    gap:6px;
+    margin-top:24px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    scrollbar-width:none;
+  }
+  nav.days::-webkit-scrollbar{display:none;}
+  nav.days button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.03em;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    padding:8px 14px;
+    border-radius:999px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  nav.days button.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:var(--paper);
+  }
+  nav.days button .dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    margin-right:6px;
+    position:relative;
+    top:-1px;
+  }
+
+  /* ---------- Schedule list ---------- */
+  section.day-panel{display:none;}
+  section.day-panel.active{display:block;}
+
+  .timeline{
+    margin-top:22px;
+    position:relative;
+  }
+  .slot{
+    display:flex;
+    gap:14px;
+    padding:16px 0;
+    border-top:1px solid var(--line);
+  }
+  .slot:first-child{border-top:none;}
+
+  .slot .time-col{
+    width:58px;
+    flex-shrink:0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    padding-top:2px;
+  }
+  .slot .time-col .end{color:#B7B5AE;}
+
+  .slot .card{
+    flex:1;
+    border-left:3px solid var(--c);
+    padding-left:14px;
+  }
+  .slot .card .name{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:17px;
+    line-height:1.25;
+    margin:0 0 4px;
+  }
+  .slot .card .room{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    background:var(--paper-dim);
+    display:inline-block;
+    padding:2px 7px;
+    border-radius:6px;
+    margin-bottom:6px;
+  }
+  .slot .card .building{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .slot .card .foot{
+    font-size:12px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .slot .card .foot span{
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  .empty-day{
+    margin-top:22px;
+    padding:34px 0;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .empty-day .big{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:19px;
+    color:var(--ink);
+    display:block;
+    margin-bottom:4px;
+  }
+
+  /* ---------- Virtual course ---------- */
+  .virtual{
+    margin-top:30px;
+    border:1px dashed var(--line);
+    border-radius:16px;
+    padding:16px 18px;
+  }
+  .virtual .label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .virtual .name{
+    font-family:'Fraunces', serif;
+    font-size:17px;
+    font-weight:500;
+    margin-bottom:6px;
+  }
+  .virtual .foot{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .virtual .foot span{font-family:'IBM Plex Mono', monospace;}
+
+  footer{
+    margin-top:36px;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:#B7B5AE;
+    letter-spacing:.04em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="switcher">
+      <button class="switcher-btn" id="switcherBtn">
+        <span id="switcherLabel">Mi horario</span>
+        <svg viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="switcher-menu" id="switcherMenu"></div>
+    </div>
+    <h1 id="pageTitle">Mi <em>horario</em></h1>
+  </header>
+
+  <div class="today">
+    <div class="today-label">
+      <span>Hoy</span>
+      <span class="today-date" id="todayDate">—</span>
+    </div>
+    <div class="today-body" id="todayBody"></div>
+  </div>
+
+  <nav class="days" id="dayNav"></nav>
+
+  <div id="dayPanels"></div>
+
+  <div id="virtualWrap"></div>
+
+  <footer>11 ago — 28 nov 2026</footer>
+</div>
+
+<script>
+const DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const DAYS_SHORT = ["Lun","Mar","Mié","Jue","Vie","Sáb"];
+
+// ---------- Data: each owner has their own set of classes ----------
+const SCHEDULES = {
+  yo: {
+    label: "Mi horario",
+    titleHtml: "Mi <em>horario</em>",
+    swatch: "var(--rose)",
+    classes: [
+      {
+        name:"Arquitectura de Software", color:"var(--blue)", nrc:"84994", prof:"Diego Aguirre Forero",
+        sessions:[
+          {day:5, start:"07:00", end:"08:29", room:"A404LS26", building:"Edif. Rafael García Herreros"},
+          {day:1, start:"18:15", end:"19:44", room:"A408LS16", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+      {
+        name:"Base de Datos Masivas", color:"var(--green)", nrc:"83378", prof:"Jeisson Sánchez Castro",
+        sessions:[
+          {day:5, start:"10:00", end:"11:29", room:"A209LS6", building:"Edif. Rafael García Herreros"},
+          {day:1, start:"20:30", end:"21:59", room:"A306LS1", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+      {
+        name:"Cálculo Integral", color:"var(--amber)", nrc:"89922", prof:"Luis Huertas Ramírez",
+        sessions:[
+          {day:5, start:"08:30", end:"09:59", room:"B407", building:"Edif. Diego Jaramillo Cuartas"},
+          {day:2, start:"20:30", end:"21:59", room:"C302", building:"Edif. San Juan Eudes"},
+        ]
+      },
+      {
+        name:"Estructura de Inter Serv y Ser", color:"var(--rose)", nrc:"85049", prof:"Óscar Díaz Romero",
+        sessions:[
+          {day:0, start:"18:15", end:"19:44", room:"A411LS19", building:"Edif. Rafael García Herreros"},
+          {day:2, start:"18:15", end:"19:44", room:"A309LS4", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+      {
+        name:"Minería de Datos", color:"var(--violet)", nrc:"83509", prof:"Narly Sánchez Caviedes",
+        sessions:[
+          {day:5, start:"11:30", end:"12:59", room:"A408LS16", building:"Edif. Rafael García Herreros"},
+          {day:4, start:"18:15", end:"19:44", room:"A408LS16", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+    ],
+    virtual: {
+      name:"Elect CPC Prospectiva de Negoc",
+      nrc:"92599",
+      prof:"Yonth Giraldo Cerón",
+      dates:"10 ago – 04 oct"
+    }
+  },
+
+  naren_brayan: {
+    label: "Naren y Brayan",
+    titleHtml: "Horario de <em>Naren y Brayan</em>",
+    swatch: "var(--teal)",
+    classes: [
+      {
+        name:"Ética Profesional", color:"var(--brown)", nrc:"89852", prof:"Luis Aponte Rojas",
+        sessions:[
+          {day:3, start:"20:30", end:"21:59", room:"SINCR", building:"Edificio Sincrónico · Campus Externo"},
+        ]
+      },
+      {
+        name:"Arquitectura de Software", color:"var(--blue)", nrc:"84994", prof:"Diego Aguirre Forero",
+        sessions:[
+          {day:5, start:"07:00", end:"08:29", room:"A404LS26", building:"Edif. Rafael García Herreros"},
+          {day:1, start:"18:15", end:"19:44", room:"A408LS16", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+      {
+        name:"Base de Datos Masivas", color:"var(--green)", nrc:"83378", prof:"Jeisson Sánchez Castro",
+        sessions:[
+          {day:5, start:"10:00", end:"11:29", room:"A209LS6", building:"Edif. Rafael García Herreros"},
+          {day:1, start:"20:30", end:"21:59", room:"A306LS1", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+      {
+        name:"Estructura de Inter Serv y Ser", color:"var(--rose)", nrc:"85049", prof:"Óscar Díaz Romero",
+        sessions:[
+          {day:0, start:"18:15", end:"19:44", room:"A411LS19", building:"Edif. Rafael García Herreros"},
+          {day:2, start:"18:15", end:"19:44", room:"A309LS4", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+      {
+        name:"Sistemas Operativos", color:"var(--teal)", nrc:"90005", prof:"Nelson Pulido Aguilar",
+        sessions:[
+          {day:0, start:"20:30", end:"21:59", room:"A306LS1", building:"Edif. Rafael García Herreros"},
+          {day:4, start:"18:15", end:"19:44", room:"A210LS14", building:"Edif. Rafael García Herreros"},
+        ]
+      },
+    ],
+    virtual: {
+      name:"Elect CPC Prospectiva de Negoc",
+      nrc:"92599",
+      prof:"Yonth Giraldo Cerón",
+      dates:"10 ago – 04 oct"
+    }
+  }
+};
+
+// ---------- State ----------
+let currentOwner = "yo";
+
+// ---------- Build switcher menu ----------
+const switcherMenu = document.getElementById('switcherMenu');
+Object.keys(SCHEDULES).forEach(key => {
+  const s = SCHEDULES[key];
+  const btn = document.createElement('button');
+  btn.dataset.owner = key;
+  btn.innerHTML = `<span class="swatch" style="background:${s.swatch}"></span>${s.label}`;
+  btn.addEventListener('click', () => {
+    currentOwner = key;
+    renderAll();
+    closeSwitcher();
+  });
+  switcherMenu.appendChild(btn);
+});
+
+const switcherBtn = document.getElementById('switcherBtn');
+switcherBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  switcherMenu.classList.toggle('open');
+  switcherBtn.classList.toggle('open');
+});
+document.addEventListener('click', closeSwitcher);
+function closeSwitcher(){
+  switcherMenu.classList.remove('open');
+  switcherBtn.classList.remove('open');
+}
+
+// ---------- Time helpers ----------
+function bogotaNow(){
+  return new Date(new Date().toLocaleString('en-US', {timeZone:'America/Bogota'}));
+}
+function toMin(t){ const [h,m] = t.split(':').map(Number); return h*60+m; }
+
+// ---------- Main render ----------
+function renderAll(){
+  const data = SCHEDULES[currentOwner];
+  document.getElementById('switcherLabel').textContent = data.label;
+  document.getElementById('pageTitle').innerHTML = data.titleHtml;
+  document.querySelectorAll('.switcher-menu button').forEach(b => {
+    b.classList.toggle('selected', b.dataset.owner === currentOwner);
+  });
+
+  // Build per-day schedule
+  const schedule = Array.from({length:6}, () => []);
+  data.classes.forEach(c => {
+    c.sessions.forEach(s => {
+      schedule[s.day].push({...s, name:c.name, color:c.color, nrc:c.nrc, prof:c.prof});
+    });
+  });
+  schedule.forEach(day => day.sort((a,b) => a.start.localeCompare(b.start)));
+
+  const now = bogotaNow();
+  let todayIdx = now.getDay() - 1;
+  if (todayIdx < 0) todayIdx = 6;
+
+  // Day nav
+  const nav = document.getElementById('dayNav');
+  const panelsWrap = document.getElementById('dayPanels');
+  nav.innerHTML = '';
+  panelsWrap.innerHTML = '';
+
+  DAYS.forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.dataset.day = i;
+    const dotColor = schedule[i][0] ? schedule[i][0].color : 'var(--gray)';
+    btn.innerHTML = `<span class="dot" style="background:${schedule[i].length ? dotColor : 'var(--line)'}"></span>${DAYS_SHORT[i]}`;
+    btn.addEventListener('click', () => selectDay(i));
+    nav.appendChild(btn);
+
+    const panel = document.createElement('section');
+    panel.className = 'day-panel';
+    panel.dataset.day = i;
+
+    if (schedule[i].length === 0){
+      panel.innerHTML = `<div class="empty-day"><span class="big">Sin clases</span>día libre</div>`;
+    } else {
+      const timeline = document.createElement('div');
+      timeline.className = 'timeline';
+      schedule[i].forEach(s => {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        slot.innerHTML = `
+          <div class="time-col">${s.start}<br><span class="end">${s.end}</span></div>
+          <div class="card" style="--c:${s.color}">
+            <p class="name">${s.name}</p>
+            <span class="room">${s.room}</span>
+            <p class="building">${s.building}</p>
+            <div class="foot"><span>NRC ${s.nrc}</span><span>${s.prof}</span></div>
+          </div>`;
+        timeline.appendChild(slot);
+      });
+      panel.appendChild(timeline);
+    }
+    panelsWrap.appendChild(panel);
+  });
+
+  function selectDay(i){
+    document.querySelectorAll('nav.days button').forEach(b => b.classList.toggle('active', +b.dataset.day === i));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.toggle('active', +p.dataset.day === i));
+  }
+  const initialDay = todayIdx <= 5 ? todayIdx : 0;
+  selectDay(initialDay);
+
+  // Virtual course card
+  const virtualWrap = document.getElementById('virtualWrap');
+  if (data.virtual){
+    virtualWrap.innerHTML = `
+      <div class="virtual">
+        <div class="label">Virtual · sin horario fijo</div>
+        <div class="name">${data.virtual.name}</div>
+        <div class="foot">
+          <span>NRC ${data.virtual.nrc}</span>
+          <span>${data.virtual.prof}</span>
+          <span>${data.virtual.dates}</span>
+        </div>
+      </div>`;
+  } else {
+    virtualWrap.innerHTML = '';
+  }
+
+  // Today strip
+  const dateFmt = new Intl.DateTimeFormat('es-CO', {day:'2-digit', month:'short', timeZone:'America/Bogota'});
+  document.getElementById('todayDate').textContent = dateFmt.format(now).replace('.', '');
+
+  const todayBody = document.getElementById('todayBody');
+  if (todayIdx > 5 || schedule[todayIdx].length === 0){
+    todayBody.innerHTML = `<p class="today-empty">No hay clases hoy.</p>`;
+  } else {
+    const nowMinutes = now.getHours()*60 + now.getMinutes();
+    let current = schedule[todayIdx].find(s => nowMinutes >= toMin(s.start) && nowMinutes < toMin(s.end));
+    let next = current || schedule[todayIdx].find(s => toMin(s.start) > nowMinutes);
+
+    if (!next){
+      todayBody.innerHTML = `<p class="today-empty">Ya terminaron las clases de hoy.</p>`;
+    } else {
+      const tag = current ? 'En curso' : 'Siguiente';
+      todayBody.innerHTML = `
+        <div class="next-class">
+          <div class="bar" style="background:${next.color}"></div>
+          <div class="info">
+            <p class="name">${next.name}</p>
+            <p class="meta">${next.start} – ${next.end} · ${next.room}</p>
+          </div>
+          <span class="tag">${tag}</span>
+        </div>`;
+    }
+  }
+}
+
+renderAll();
+</script>
+</body>
+</html>
